@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # flea-market-front
 
 This template should help get you started developing with Vue 3 in Vite.
@@ -27,3 +28,7 @@ npm run dev
 ```sh
 npm run build
 ```
+=======
+# flea_market
+综合实训1
+>>>>>>> 182c25053061f87d3231229426f73e4b7f6bfbb7
