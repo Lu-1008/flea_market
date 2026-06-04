@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.syf.fleamarket.dao.ReviewMapper">
+    
+    <!-- 批量删除评价 -->
+    <delete id="batchDeleteReviews" parameterType="list">
+        DELETE FROM reviews WHERE review_id IN 
+        <foreach collection="reviewIds" item="reviewId" open="(" separator="," close=")">
+            #{reviewId}
+        </foreach>
+    </delete>
+    
+</mapper> 
