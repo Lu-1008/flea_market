@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.market.order.dao.OrderMapper">
+    
+    <!-- 获取订单列表（带分页和筛选） -->
+    <select id="getOrderList" parameterType="map" resultType="map">
+        SELECT 
+            o.order_id AS orderId,
+            o.buyer_id AS buyerId,
+            buyer.username AS buyerName,
+            buyer.address AS buyerAddress,
+            o.seller_id AS sellerId,
+            seller.username AS sellerName,
+            seller.address AS sellerAddress,
+            o.total_amount AS totalAmount,
+            o.status,
+            o.created_at AS createdAt
+        FROM 
+            orders o
+        LEFT JOIN 
+            users buyer ON o.buyer_id = buyer.user_id
+        LEFT JOIN 
+            users seller ON o.seller_id = seller.user_id
+        <where>
+            <if test="orderId != null and orderId != ''">
+                AND o.order_id = #{orderId}
+            </if>
+            <if test="buyerId != null">
+                AND o.buyer_id = #{buyerId}
+            </if>
+            <if test="buyerName != null and buyerName != ''">
+                AND buyer.username LIKE CONCAT('%', #{buyerName}, '%')
+            </if>
+            <if test="sellerName != null and sellerName != ''">
+                AND seller.username LIKE CONCAT('%', #{sellerName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND o.status = #{status}
+            </if>
+        </where>
+        ORDER BY o.created_at DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+    
+    <!-- 获取订单总数（带筛选） -->
+    <select id="getOrderCount" parameterType="map" resultType="int">
+        SELECT 
+            COUNT(*)
+        FROM 
+            orders o
+        LEFT JOIN 
+            users buyer ON o.buyer_id = buyer.user_id
+        LEFT JOIN 
+            users seller ON o.seller_id = seller.user_id
+        <where>
+            <if test="orderId != null and orderId != ''">
+                AND o.order_id = #{orderId}
+            </if>
+            <if test="buyerId != null">
+                AND o.buyer_id = #{buyerId}
+            </if>
+            <if test="buyerName != null and buyerName != ''">
+                AND buyer.username LIKE CONCAT('%', #{buyerName}, '%')
+            </if>
+            <if test="sellerName != null and sellerName != ''">
+                AND seller.username LIKE CONCAT('%', #{sellerName}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND o.status = #{status}
+            </if>
+        </where>
+    </select>
+    
+    <!-- 根据ID获取订单详情 -->
+    <select id="getOrderById" resultType="map">
+        SELECT 
+            o.order_id AS orderId,
+            o.buyer_id AS buyerId,
+            buyer.username AS buyerName,
+            buyer.address AS buyerAddress,
+            o.seller_id AS sellerId,
+            seller.username AS sellerName,
+            seller.address AS sellerAddress,
+            o.total_amount AS totalAmount,
+            o.status,
+            o.created_at AS createdAt
+        FROM 
+            orders o
+        LEFT JOIN 
+            users buyer ON o.buyer_id = buyer.user_id
+        LEFT JOIN 
+            users seller ON o.seller_id = seller.user_id
+        WHERE 
+            o.order_id = #{orderId}
+    </select>
+    
+    <!-- 获取订单中的商品列表 -->
+    <select id="getOrderItems" resultType="map">
+        SELECT 
+            oi.order_item_id AS orderItemId,
+            oi.order_id AS orderId,
+            oi.item_id AS itemId,
+            i.title AS itemTitle,
+            oi.price,
+            oi.quantity
+        FROM 
+            order_items oi
+        LEFT JOIN 
+            items i ON oi.item_id = i.item_id
+        WHERE 
+            oi.order_id = #{orderId}
+    </select>
+    
+    <!-- 创建订单 -->
+    <insert id="createOrder" parameterType="com.market.order.entity.Order" useGeneratedKeys="true" keyProperty="orderId">
+        INSERT INTO orders (
+            buyer_id, 
+            seller_id, 
+            total_amount, 
+            status
+        ) VALUES (
+            #{buyerId}, 
+            #{sellerId}, 
+            #{totalAmount}, 
+            #{status}
+        )
+    </insert>
+    
+    <!-- 批量创建订单商品 -->
+    <insert id="createOrderItems" parameterType="java.util.List">
+        INSERT INTO order_items (
+            order_id, 
+            item_id, 
+            price, 
+            quantity
+        ) VALUES 
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.orderId}, 
+                #{item.itemId}, 
+                #{item.price}, 
+                #{item.quantity}
+            )
+        </foreach>
+    </insert>
+    
+    <!-- 更新订单信息 -->
+    <update id="updateOrder" parameterType="com.market.order.entity.Order">
+        UPDATE orders
+        <set>
+            <if test="buyerId != null">
+                buyer_id = #{buyerId},
+            </if>
+            <if test="sellerId != null">
+                seller_id = #{sellerId},
+            </if>
+            <if test="totalAmount != null">
+                total_amount = #{totalAmount},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+        </set>
+        WHERE order_id = #{orderId}
+    </update>
+    
+    <!-- 更新订单状态 -->
+    <update id="updateOrderStatus">
+        UPDATE orders
+        SET status = #{status}
+        WHERE order_id = #{orderId}
+    </update>
+    
+    <!-- 删除订单 -->
+    <delete id="deleteOrder">
+        DELETE FROM orders
+        WHERE order_id = #{orderId}
+    </delete>
+    
+    <!-- 批量删除订单 -->
+    <delete id="batchDeleteOrders">
+        DELETE FROM orders
+        WHERE order_id IN
+        <foreach collection="orderIds" item="orderId" open="(" separator="," close=")">
+            #{orderId}
+        </foreach>
+    </delete>
+    
+    <!-- 获取订单的评价信息 -->
+    <select id="getOrderReview" resultType="map">
+        SELECT 
+            r.review_id AS reviewId,
+            r.rating,
+            r.comment,
+            r.created_at AS createdAt,
+            r.item_id AS itemId
+        FROM 
+            reviews r
+        JOIN 
+            order_items oi ON r.item_id = oi.item_id
+        WHERE 
+            oi.order_id = #{orderId}
+        LIMIT 1
+    </select>
+    
+</mapper> 

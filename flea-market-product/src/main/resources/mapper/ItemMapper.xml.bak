@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.market.product.dao.ItemMapper">
+    
+    <!-- 商品结果映射 -->
+    <resultMap id="itemResultMap" type="com.market.product.entity.Item">
+        <id property="itemId" column="item_id"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="price" column="price"/>
+        <result property="userId" column="user_id"/>
+        <result property="categoryId" column="category_id"/>
+        <result property="status" column="status"/>
+        <result property="validUntil" column="valid_until"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="itemImageUrl" column="item_image_url"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="username" column="username"/>
+    </resultMap>
+    
+    <!-- 查询商品列表（支持分页和条件筛选） -->
+    <select id="findItemList" parameterType="map" resultMap="itemResultMap">
+        SELECT i.*, c.name as category_name, u.username
+        FROM items i
+        LEFT JOIN categories c ON i.category_id = c.category_id
+        LEFT JOIN users u ON i.user_id = u.user_id
+        WHERE 1=1
+        <if test="title != null and title != ''">
+            AND i.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="categoryId != null">
+            AND i.category_id = #{categoryId}
+        </if>
+        <if test="userId != null">
+            AND i.user_id = #{userId}
+        </if>
+        <if test="status != null and status != ''">
+            AND i.status = #{status}
+        </if>
+        ORDER BY i.created_at DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+    
+    <!-- 统计符合条件的商品总数 -->
+    <select id="countItems" parameterType="map" resultType="int">
+        SELECT COUNT(*) FROM items i
+        WHERE 1=1
+        <if test="title != null and title != ''">
+            AND i.title LIKE CONCAT('%', #{title}, '%')
+        </if>
+        <if test="categoryId != null">
+            AND i.category_id = #{categoryId}
+        </if>
+        <if test="userId != null">
+            AND i.user_id = #{userId}
+        </if>
+        <if test="status != null and status != ''">
+            AND i.status = #{status}
+        </if>
+    </select>
+    
+</mapper> 

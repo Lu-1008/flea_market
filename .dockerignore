@@ -1,0 +1,7 @@
+# 排除 node_modules 和日志
+**/node_modules/
+*.log
+
+# 排除 Maven target 但保留 backend 的 JAR
+flea-market-*/target/
+!flea-market-web/target/*.jar

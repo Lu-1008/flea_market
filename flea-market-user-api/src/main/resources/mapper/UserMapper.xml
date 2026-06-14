@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.market.user.dao.UserMapper">
+    
+    <!-- 用户结果映射 -->
+    <resultMap id="userResultMap" type="com.market.user.entity.User">
+        <id property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="email" column="email"/>
+        <result property="phone" column="phone"/>
+        <result property="role" column="role"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="userImgUrl" column="user_image_url"/>
+        <result property="averageRating" column="avg_rating"/>
+        <result property="address" column="address"/>
+    </resultMap>
+    
+    <!-- 查询用户列表（支持分页和条件筛选） -->
+    <select id="findUserList" parameterType="map" resultMap="userResultMap">
+        SELECT * FROM users
+        WHERE 1=1
+        <if test="username != null and username != ''">
+            AND username LIKE CONCAT('%', #{username}, '%')
+        </if>
+        <if test="role != null and role != ''">
+            AND role = #{role}
+        </if>
+        ORDER BY created_at DESC
+        <if test="offset != null and limit != null">
+            LIMIT #{offset}, #{limit}
+        </if>
+    </select>
+    
+    <!-- 统计符合条件的用户总数 -->
+    <select id="countUsers" parameterType="map" resultType="int">
+        SELECT COUNT(*) FROM users
+        WHERE 1=1
+        <if test="username != null and username != ''">
+            AND username LIKE CONCAT('%', #{username}, '%')
+        </if>
+        <if test="role != null and role != ''">
+            AND role = #{role}
+        </if>
+    </select>
+    
+</mapper> 

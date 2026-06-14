@@ -1,0 +1,12 @@
+# 前端 Dockerfile
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY flea-market-user/package*.json ./
+RUN npm install
+COPY flea-market-user/ ./
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
